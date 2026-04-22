@@ -1,34 +1,25 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Tajawal:wght@400;500;700;800;900&display=swap');
 @import "tailwindcss";
 
+html {
+  scroll-behavior: smooth;
+}
+
+html, body {
+  overscroll-behavior: none;
+  background-color: #ffffff;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+[dir="rtl"] {
+  font-family: 'Tajawal', system-ui, sans-serif;
+}
+
 @theme {
-  --color-bg-light: #fdfaf6;
-  --color-text-dark: #1a1a1a;
-  --color-text-muted: #666666;
-  --color-accent-warm: #e56054;
-  --color-btn-dark: #1a1a1a;
-  --color-glass-border: rgba(255, 255, 255, 0.5);
-  --color-glass-bg: rgba(255, 255, 255, 0.4);
-  --color-accent-glow: rgba(229, 96, 84, 0.15);
-  --font-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --color-orange: #ff7a1a;
+  --color-orange-light: #fff5ee;
+  --color-text: #111111;
+  --color-muted: #888888;
 }
 
-@layer utilities {
-  .app-gradient {
-    /* Using background-color directly with fixed attachment for the body/root */
-    background: 
-      radial-gradient(circle at 100% 100%, #ffcf9e 0%, transparent 50%),
-      radial-gradient(circle at 0% 100%, #ff8c6b 0%, transparent 60%),
-      radial-gradient(circle at 50% 120%, #e56054 0%, transparent 50%),
-      var(--color-bg-light);
-    background-attachment: fixed;
-  }
-
-  .glass-card {
-    background: var(--color-glass-bg);
-    backdrop-filter: blur(40px);
-    -webkit-backdrop-filter: blur(40px);
-    border: 1px solid var(--color-glass-border);
-    border-radius: 32px;
-    box-shadow: 0 40px 100px var(--color-accent-glow);
-  }
-}
+* { box-sizing: border-box; }
