@@ -3,6 +3,7 @@ import { useLang } from './hooks/useLang'
 import Navbar from './components/Navbar'
 import Hero from './components/Hero'
 import StatsStrip from './components/StatsStrip'
+import Features from './components/Features'
 
 export default function App() {
   const { lang, toggle } = useLang()
@@ -11,6 +12,7 @@ export default function App() {
       <Navbar lang={lang} onToggleLang={toggle} />
       <Hero lang={lang} />
       <StatsStrip lang={lang} />
+      <Features lang={lang} />
     </div>
   )
 }
