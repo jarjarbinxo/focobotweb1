@@ -1,12 +1,14 @@
+// src/App.tsx
 import { useLang } from './hooks/useLang'
 import Navbar from './components/Navbar'
+import Hero from './components/Hero'
 
 export default function App() {
   const { lang, toggle } = useLang()
   return (
     <div className="min-h-screen">
       <Navbar lang={lang} onToggleLang={toggle} />
-      <div className="pt-20 p-8 text-gray-400 text-sm">Building…</div>
+      <Hero lang={lang} />
     </div>
   )
 }
