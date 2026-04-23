@@ -2,6 +2,7 @@
 import { useLang } from './hooks/useLang'
 import Navbar from './components/Navbar'
 import Hero from './components/Hero'
+import StatsStrip from './components/StatsStrip'
 
 export default function App() {
   const { lang, toggle } = useLang()
@@ -9,6 +10,7 @@ export default function App() {
     <div className="min-h-screen">
       <Navbar lang={lang} onToggleLang={toggle} />
       <Hero lang={lang} />
+      <StatsStrip lang={lang} />
     </div>
   )
 }
