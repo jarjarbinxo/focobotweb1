@@ -7,7 +7,8 @@ html {
 
 html, body {
   overscroll-behavior: none;
-  background-color: #ffffff;
+  background-color: #08080c;
+  color: #ffffff;
   font-family: 'Inter', system-ui, sans-serif;
 }
 
@@ -17,9 +18,78 @@ html, body {
 
 @theme {
   --color-orange: #ff7a1a;
-  --color-orange-light: #fff5ee;
-  --color-text: #111111;
-  --color-muted: #888888;
+  --color-orange-dim: rgba(255, 122, 26, 0.15);
+  --color-surface: #0f0f14;
+  --color-surface-2: #141419;
+  --color-border: rgba(255, 255, 255, 0.07);
+  --color-text: #ffffff;
+  --color-muted: rgba(255, 255, 255, 0.5);
 }
 
 * { box-sizing: border-box; }
+
+/* glass card utility */
+.glass {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+/* orange gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #ff7a1a 0%, #ffb347 60%, #ff9a4a 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* navbar scrolled state — backdrop blur without inline styles */
+.navbar-scrolled {
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+/* hero highlight — orange gradient text */
+.hero-highlight {
+  background: linear-gradient(135deg, #ff7a1a, #ffb347);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* hero CTA primary button glow */
+.hero-cta-primary {
+  box-shadow: 0 0 24px rgba(255, 122, 26, 0.35);
+}
+
+/* hero phone mockup shell shadow */
+.hero-phone-shell {
+  box-shadow: 0 0 80px rgba(255, 122, 26, 0.15), 0 40px 80px rgba(0, 0, 0, 0.5);
+}
+
+/* hero phone glow blob */
+.hero-phone-glow {
+  background: radial-gradient(ellipse, #ff7a1a 0%, transparent 70%);
+}
+
+/* FreeWeekBanner — gradient border wrapper */
+.free-week-border {
+  background: linear-gradient(135deg, rgba(255,122,26,0.5), rgba(255,122,26,0.1) 50%, rgba(255,122,26,0.3));
+}
+
+/* FreeWeekBanner — CTA button orange glow */
+.free-week-cta {
+  box-shadow: 0 0 40px rgba(255,122,26,0.4);
+}
+
+/* subtle noise texture overlay */
+.noise::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  opacity: 0.4;
+  mix-blend-mode: overlay;
+}

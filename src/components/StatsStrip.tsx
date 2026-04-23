@@ -1,30 +1,29 @@
-// src/components/StatsStrip.tsx
 import { motion } from 'motion/react'
 import { copy } from '../data/copy'
 import type { Lang } from '../data/copy'
 
-interface StatsStripProps {
-  lang: Lang
-}
+interface StatsStripProps { lang: Lang }
 
 export default function StatsStrip({ lang }: StatsStripProps) {
   const stats = copy[lang].stats
 
   return (
-    <section className="border-y border-gray-100 bg-gray-50/50">
-      <div className="max-w-6xl mx-auto px-6 py-10">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-          {stats.map((stat, i) => (
+    <section className="py-16 px-6 bg-[#0f0f14] border-y border-white/[0.06]">
+      <div className="max-w-6xl mx-auto">
+        <div className="grid grid-cols-2 md:grid-cols-4">
+          {stats.map((stat, index) => (
             <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 12 }}
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.08, duration: 0.5 }}
-              className="text-center"
+              transition={{ delay: index * 0.1, duration: 0.5, ease: 'easeOut' }}
+              className={`text-center py-4 px-6 ${
+                index < stats.length - 1 ? 'border-r border-white/[0.06]' : ''
+              }`}
             >
-              <div className="text-3xl font-black text-orange mb-1">{stat.value}</div>
-              <div className="text-sm text-gray-500 font-medium">{stat.label}</div>
+              <div className="text-3xl md:text-4xl font-black text-orange">{stat.value}</div>
+              <div className="text-white/50 text-sm mt-1">{stat.label}</div>
             </motion.div>
           ))}
         </div>
