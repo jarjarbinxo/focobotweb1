@@ -1,6 +1,7 @@
 import { motion } from 'motion/react'
 import { copy } from '../data/copy'
 import type { Lang } from '../data/copy'
+import Galaxy from './Galaxy'
 
 interface MottoSectionProps {
   lang: Lang
@@ -48,8 +49,8 @@ export default function MottoSection({ lang }: MottoSectionProps) {
 
   return (
     <section className="py-32 px-6 bg-white relative overflow-hidden">
-      {/* Radial orange glow */}
-      <div className="motto-glow absolute inset-0 pointer-events-none" />
+      {/* Galaxy background */}
+      <Galaxy className="absolute inset-0 w-full h-full opacity-30" />
 
       {/* Content */}
       <div className="max-w-3xl mx-auto text-center relative z-10">

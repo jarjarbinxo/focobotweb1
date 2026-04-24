@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { motion, AnimatePresence } from 'motion/react'
-import { Play } from 'lucide-react'
+import { motion } from 'motion/react'
+import { Play, UtensilsCrossed, Coffee, Dumbbell, Stethoscope, ShoppingBag, Scissors } from 'lucide-react'
 import { copy, floatingReviews } from '../data/copy'
 import type { Lang } from '../data/copy'
 import Aurora from './Aurora'
@@ -15,12 +15,6 @@ const BUBBLE_CONFIG = Array.from({ length: 12 }, (_, i) => ({
   sizeClass: (['text-[10px]', 'text-xs', 'text-[11px]'] as const)[i % 3],
   reviewIndex: i,
 }))
-
-const CARD_POSITIONS = [
-  { side: 'right' as const, topOffset: '20%' },
-  { side: 'left'  as const, topOffset: '45%' },
-  { side: 'right' as const, topOffset: '65%' },
-]
 
 // ── BubbleReview ─────────────────────────────────────────────────────────────
 interface BubbleReviewProps {
@@ -65,83 +59,89 @@ function BubbleReview({ item, delay, left, duration, sizeClass }: BubbleReviewPr
   )
 }
 
-// ── FloatingCard ──────────────────────────────────────────────────────────────
-interface FloatingCardProps {
-  side: 'left' | 'right'
-  topOffset: string
-  reviewIndex: number
-  lang: Lang
-}
+// ── OrbitRing — animated SVG rings + business nodes ─────────────────────────
+const ORBIT_NODES = [
+  { Icon: UtensilsCrossed, label: 'Restaurant', angle: 0,   r: 140, speed: 22 },
+  { Icon: Coffee,          label: 'Café',       angle: 60,  r: 140, speed: 22 },
+  { Icon: Dumbbell,        label: 'Gym',        angle: 120, r: 140, speed: 22 },
+  { Icon: Stethoscope,     label: 'Clinic',     angle: 180, r: 140, speed: 22 },
+  { Icon: ShoppingBag,     label: 'Boutique',   angle: 240, r: 140, speed: 22 },
+  { Icon: Scissors,        label: 'Salon',      angle: 300, r: 140, speed: 22 },
+]
 
-function FloatingCard({ side, topOffset, reviewIndex, lang }: FloatingCardProps) {
-  const [idx, setIdx] = useState(reviewIndex % floatingReviews.length)
-  const [visible, setVisible] = useState(true)
-
-  // Cycle through reviews every 3.5s, stagger start by reviewIndex
-  useEffect(() => {
-    const initialDelay = reviewIndex * 1200
-    let timeout: ReturnType<typeof setTimeout>
-    let interval: ReturnType<typeof setInterval>
-
-    timeout = setTimeout(() => {
-      setVisible(true)
-      interval = setInterval(() => {
-        setVisible(false)
-        setTimeout(() => {
-          setIdx(prev => (prev + 3) % floatingReviews.length)
-          setVisible(true)
-        }, 600)
-      }, 3500)
-    }, initialDelay)
-
-    return () => {
-      clearTimeout(timeout)
-      clearInterval(interval)
-    }
-  }, [reviewIndex])
-
-  const item = floatingReviews[idx]
-  // For RTL, flip the side
-  const effectiveSide = lang === 'ar' ? (side === 'right' ? 'left' : 'right') : side
-  const cardClass = effectiveSide === 'right' ? 'hero-card-right' : 'hero-card-left'
-
-  // Avatar initials from name
-  const initials = item.name
-    .split(' ')
-    .slice(0, 2)
-    .map(w => w[0])
-    .join('')
-    .toUpperCase()
-
+function OrbitRing() {
   return (
-    <div
-      className={`absolute ${cardClass}`}
-      style={{ '--card-top': topOffset } as React.CSSProperties}
-    >
-      <AnimatePresence>
-        {visible && (
-          <motion.div
-            key={idx}
-            initial={{ opacity: 0, y: 40, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -80, scale: 0.95 }}
-            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="bg-white rounded-2xl shadow-xl px-4 py-3 text-sm w-52 pointer-events-none"
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-full bg-[#ff7a1a]/20 flex items-center justify-center text-[#ff7a1a] font-bold text-xs flex-shrink-0">
-                {initials}
+    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+      {/* Rotating container — spins the whole ring */}
+      <motion.div
+        className="relative w-[280px] h-[280px]"
+        animate={{ rotate: 360 }}
+        transition={{ duration: 22, repeat: Infinity, ease: 'linear' }}
+      >
+        {/* SVG ring */}
+        <svg className="absolute inset-0 w-full h-full" viewBox="0 0 280 280">
+          <circle
+            cx="140" cy="140" r="132"
+            fill="none"
+            stroke="rgba(255,122,26,0.12)"
+            strokeWidth="1"
+            strokeDasharray="6 8"
+          />
+          {/* Animated arc highlight */}
+          <motion.circle
+            cx="140" cy="140" r="132"
+            fill="none"
+            stroke="url(#arcGrad)"
+            strokeWidth="2"
+            strokeDasharray="80 744"
+            strokeLinecap="round"
+          />
+          <defs>
+            <linearGradient id="arcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#ff7a1a" stopOpacity="0" />
+              <stop offset="50%" stopColor="#ff7a1a" stopOpacity="0.8" />
+              <stop offset="100%" stopColor="#ff7a1a" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+        </svg>
+
+        {/* Nodes — counter-rotate so icons stay upright */}
+        {ORBIT_NODES.map(({ Icon, label, angle }, i) => {
+          const rad = (angle * Math.PI) / 180
+          const x = 140 + 132 * Math.cos(rad)
+          const y = 140 + 132 * Math.sin(rad)
+          return (
+            <motion.div
+              key={i}
+              className="absolute -translate-x-1/2 -translate-y-1/2"
+              style={{ left: x, top: y }}
+              animate={{ rotate: -360 }}
+              transition={{ duration: 22, repeat: Infinity, ease: 'linear' }}
+            >
+              <div className="flex flex-col items-center gap-1">
+                <div className="w-10 h-10 rounded-2xl bg-white shadow-lg border border-gray-100 flex items-center justify-center text-[#ff7a1a]">
+                  <Icon className="w-5 h-5" />
+                </div>
+                <span className="text-[9px] font-semibold text-gray-500 whitespace-nowrap bg-white/80 px-1.5 py-0.5 rounded-full">
+                  {label}
+                </span>
               </div>
-              <div className="min-w-0">
-                <div className="font-semibold text-gray-800 text-xs truncate">{item.name}</div>
-                <div className="text-gray-400 text-[10px] truncate">{item.company}</div>
-              </div>
-            </div>
-            <div className="text-[#ff7a1a] text-xs mb-1">{'★'.repeat(item.stars)}</div>
-            <p className="text-gray-600 text-xs leading-relaxed line-clamp-2">{item.text}</p>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </motion.div>
+          )
+        })}
+      </motion.div>
+
+      {/* Outer pulse ring */}
+      <motion.div
+        className="absolute w-[300px] h-[300px] rounded-full border border-[#ff7a1a]/10"
+        animate={{ scale: [1, 1.08, 1], opacity: [0.4, 0.1, 0.4] }}
+        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.div
+        className="absolute w-[340px] h-[340px] rounded-full border border-[#ff7a1a]/06"
+        animate={{ scale: [1, 1.06, 1], opacity: [0.3, 0.08, 0.3] }}
+        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
+      />
     </div>
   )
 }
@@ -314,16 +314,21 @@ export default function Hero({ lang }: HeroProps) {
             </motion.div>
           </div>
 
-          {/* ── RIGHT: Phone + floating cards ── */}
+          {/* ── RIGHT: Phone + orbit shader ── */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.3 }}
-            className="relative w-full max-w-sm mx-auto flex-shrink-0"
+            className="relative w-full max-w-[380px] mx-auto flex-shrink-0 flex items-center justify-center"
+            style={{ minHeight: 480 }}
           >
-            {/* Phone shell */}
+            {/* Orbit ring behind phone */}
+            <OrbitRing />
+
+            {/* Phone shell — centered on top of orbit */}
             <motion.div
-              className="hero-phone-shell hero-phone-3d bg-white rounded-[2.5rem] p-3 border border-gray-100"
+              className="relative z-10 hero-phone-shell hero-phone-3d bg-white rounded-[2.5rem] p-3 border border-gray-100"
+              style={{ width: 220 }}
               whileHover={{ rotateY: 5, rotateX: -3, scale: 1.02 }}
               transition={{ type: 'spring', stiffness: 200, damping: 20 }}
             >
@@ -341,7 +346,7 @@ export default function Hero({ lang }: HeroProps) {
                 </div>
 
                 {/* Chat messages */}
-                <div className="bg-[#0b1e19] px-3 py-4 min-h-[380px] flex flex-col gap-2 overflow-hidden">
+                <div className="bg-[#0b1e19] px-3 py-4 min-h-[320px] flex flex-col gap-2 overflow-hidden">
                   {allMessages.slice(0, visibleCount).map((msg, i) => (
                     <motion.div
                       key={`${lang}-${i}`}
@@ -351,7 +356,7 @@ export default function Hero({ lang }: HeroProps) {
                       className={`flex ${msg.from === 'customer' ? 'justify-end' : 'justify-start'}`}
                     >
                       <div
-                        className={`text-white text-sm px-4 py-2 max-w-[85%] ${
+                        className={`text-white text-xs px-3 py-2 max-w-[85%] ${
                           msg.from === 'customer'
                             ? 'bg-[#005c4b] rounded-2xl rounded-tr-sm'
                             : 'bg-[#1f2c34] rounded-2xl rounded-tl-sm'
@@ -365,19 +370,10 @@ export default function Hero({ lang }: HeroProps) {
               </div>
             </motion.div>
 
-            {/* Glow behind phone */}
-            <div className="absolute -inset-4 rounded-[3rem] -z-10 blur-3xl opacity-30 bg-[#ff7a1a]/20" />
-
-            {/* Floating review cards */}
-            {CARD_POSITIONS.map((pos, i) => (
-              <FloatingCard
-                key={i}
-                side={pos.side}
-                topOffset={pos.topOffset}
-                reviewIndex={i * 5 + 2}
-                lang={lang}
-              />
-            ))}
+            {/* Central orange glow */}
+            <div className="absolute inset-0 flex items-center justify-center -z-10 pointer-events-none">
+              <div className="w-48 h-48 rounded-full bg-[#ff7a1a]/15 blur-3xl" />
+            </div>
           </motion.div>
         </div>
       </div>

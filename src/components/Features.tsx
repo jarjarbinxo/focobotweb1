@@ -2,6 +2,7 @@ import { motion } from 'motion/react'
 import { Zap, ShoppingCart, Megaphone, BarChart2, Globe, Bell } from 'lucide-react'
 import { copy } from '../data/copy'
 import type { Lang } from '../data/copy'
+import ParticleField from './ParticleField'
 
 const ICONS = { Zap, ShoppingCart, Megaphone, BarChart2, Globe, Bell } as const
 type IconKey = keyof typeof ICONS
@@ -45,6 +46,9 @@ export default function Features({ lang }: FeaturesProps) {
 
   return (
     <section id="features" className="py-24 px-6 mesh-bg relative overflow-hidden">
+      {/* Particle field background */}
+      <ParticleField className="absolute inset-0 w-full h-full opacity-60" />
+
       {/* radial orange glow at top */}
       <div className="features-glow absolute inset-0 pointer-events-none" />
 
