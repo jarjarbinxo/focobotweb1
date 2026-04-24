@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Tajawal:wght@400;500;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@700;800;900&family=Inter:wght@400;500;600;700;800;900&family=Tajawal:wght@400;500;700;800;900&display=swap');
 @import "tailwindcss";
 
 html {
@@ -7,8 +7,8 @@ html {
 
 html, body {
   overscroll-behavior: none;
-  background-color: #08080c;
-  color: #ffffff;
+  background-color: #ffffff;
+  color: #111111;
   font-family: 'Inter', system-ui, sans-serif;
 }
 
@@ -18,78 +18,161 @@ html, body {
 
 @theme {
   --color-orange: #ff7a1a;
-  --color-orange-dim: rgba(255, 122, 26, 0.15);
-  --color-surface: #0f0f14;
-  --color-surface-2: #141419;
-  --color-border: rgba(255, 255, 255, 0.07);
-  --color-text: #ffffff;
-  --color-muted: rgba(255, 255, 255, 0.5);
+  --color-orange-light: #fff5ee;
+  --color-orange-dim: rgba(255, 122, 26, 0.12);
+  --color-surface: #f9f8f6;
+  --color-surface-2: #f2f1ef;
+  --color-border: rgba(0, 0, 0, 0.07);
+  --color-text: #111111;
+  --color-muted: #666666;
 }
 
 * { box-sizing: border-box; }
 
-/* glass card utility */
-.glass {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
+/* Poppins for headings */
+h1, h2, h3 {
+  font-family: 'Poppins', 'Inter', system-ui, sans-serif;
+}
+
+/* prefers-reduced-motion — disable all animations */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* card utility — Soft UI Evolution: multi-layer shadow, clear border */
+.card {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.06), 0 12px 40px rgba(0,0,0,0.04);
+  transition: box-shadow 200ms ease, border-color 200ms ease;
+}
+.card:hover {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05), 0 8px 24px rgba(0,0,0,0.08), 0 20px 60px rgba(0,0,0,0.06);
 }
 
 /* orange gradient text */
 .gradient-text {
-  background: linear-gradient(135deg, #ff7a1a 0%, #ffb347 60%, #ff9a4a 100%);
+  background: linear-gradient(135deg, #ff7a1a 0%, #ff9a4a 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* navbar scrolled state — backdrop blur without inline styles */
+/* navbar scrolled state */
 .navbar-scrolled {
+  background: rgba(255, 255, 255, 0.92);
+  border-bottom: 1px solid rgba(0,0,0,0.07);
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
 }
 
-/* hero highlight — orange gradient text */
+/* hero highlight — orange gradient */
 .hero-highlight {
-  background: linear-gradient(135deg, #ff7a1a, #ffb347);
+  background: linear-gradient(135deg, #ff7a1a, #ff9a4a);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* hero CTA primary button glow */
+/* hero CTA glow */
 .hero-cta-primary {
-  box-shadow: 0 0 24px rgba(255, 122, 26, 0.35);
+  box-shadow: 0 4px 24px rgba(255, 122, 26, 0.35);
 }
 
-/* hero phone mockup shell shadow */
+/* hero phone shell */
 .hero-phone-shell {
-  box-shadow: 0 0 80px rgba(255, 122, 26, 0.15), 0 40px 80px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 8px 60px rgba(0, 0, 0, 0.12), 0 2px 12px rgba(0,0,0,0.08);
 }
 
-/* hero phone glow blob */
-.hero-phone-glow {
-  background: radial-gradient(ellipse, #ff7a1a 0%, transparent 70%);
+/* hero phone 3D tilt */
+.hero-phone-3d {
+  transform-style: preserve-3d;
+  perspective: 1000px;
 }
 
-/* FreeWeekBanner — gradient border wrapper */
+/* hero rising bubble — left set via --bubble-left CSS var */
+.hero-bubble-rising {
+  left: var(--bubble-left);
+  bottom: -120px;
+}
+
+/* hero badge shimmer overlay */
+.hero-badge-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+}
+
+/* hero floating card positions — top set via --card-top CSS var */
+.hero-card-right {
+  right: -60px;
+  top: var(--card-top);
+}
+.hero-card-left {
+  left: -60px;
+  top: var(--card-top);
+}
+
+/* FreeWeekBanner — gradient border */
 .free-week-border {
-  background: linear-gradient(135deg, rgba(255,122,26,0.5), rgba(255,122,26,0.1) 50%, rgba(255,122,26,0.3));
+  background: linear-gradient(135deg, rgba(255,122,26,0.4), rgba(255,122,26,0.1) 50%, rgba(255,122,26,0.25));
 }
 
-/* FreeWeekBanner — CTA button orange glow */
+/* FreeWeekBanner — CTA button glow */
 .free-week-cta {
-  box-shadow: 0 0 40px rgba(255,122,26,0.4);
+  box-shadow: 0 4px 32px rgba(255,122,26,0.35);
 }
 
-/* subtle noise texture overlay */
-.noise::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-  pointer-events: none;
-  opacity: 0.4;
-  mix-blend-mode: overlay;
+/* floating reviews scroll animation */
+@keyframes scrollUp {
+  0%   { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
 }
+.reviews-col {
+  animation: scrollUp linear infinite;
+}
+
+/* dot pattern overlay for bento wide cards */
+.bento-dots {
+  background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='2' cy='2' r='1.5' fill='%23ff7a1a'/%3E%3C/svg%3E");
+}
+
+/* radial orange glow overlay for Features section */
+.features-glow {
+  background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(255,122,26,0.07) 0%, transparent 70%);
+}
+
+/* radial orange glow overlay for MottoSection */
+.motto-glow {
+  background: radial-gradient(ellipse 80% 60% at 50% 50%, rgba(255,122,26,0.06) 0%, transparent 70%);
+}
+
+/* mesh gradient shader for Features section bg */
+@keyframes meshMove {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.mesh-bg {
+  background: linear-gradient(
+    -45deg,
+    #fff5ee 0%,
+    #ffffff 25%,
+    #fff8f3 50%,
+    #ffffff 75%,
+    #fff0e5 100%
+  );
+  background-size: 400% 400%;
+  animation: meshMove 12s ease infinite;
+}
+
+/* typing indicator dots */
+@keyframes blink {
+  0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+  40% { opacity: 1; transform: scale(1); }
+}
+.typing-dot:nth-child(1) { animation: blink 1.4s infinite 0s; }
+.typing-dot:nth-child(2) { animation: blink 1.4s infinite 0.2s; }
+.typing-dot:nth-child(3) { animation: blink 1.4s infinite 0.4s; }

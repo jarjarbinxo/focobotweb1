@@ -64,34 +64,25 @@ void main(){
   vec2 st=vUv;
   float ar=uResolution.x/uResolution.y;
   st.x*=ar;
-  float t=uTime*.06;
+  float t=uTime*.05;
 
   vec2 q=vec2(fbm(st+t),fbm(st+vec2(1.)));
   vec2 r=vec2(
-    fbm(st+1.0*q+vec2(1.7,9.2)+.15*t),
-    fbm(st+1.0*q+vec2(8.3,2.8)+.126*t)
+    fbm(st+1.0*q+vec2(1.7,9.2)+.12*t),
+    fbm(st+1.0*q+vec2(8.3,2.8)+.10*t)
   );
   float f=fbm(st+r);
 
-  // dark base → orange glow → amber highlight
-  vec3 col=mix(
-    vec3(.032,.032,.05),
-    vec3(1.,.47,.1),
-    clamp(f*f*f+.6*f*f+.5*f,0.,1.)
-  );
-  col=mix(col,vec3(.8,.3,.05),clamp(length(q)*.5,0.,1.));
-  col=mix(col,vec3(1.,.6,.15),clamp(r.x*.4,0.,1.));
+  // warm cream base with soft orange/amber wisps
+  vec3 base=vec3(1.0,0.98,0.95);
+  vec3 col=mix(base, vec3(1.0,0.56,0.18), clamp(f*f*0.5,0.,0.28));
+  col=mix(col, vec3(1.0,0.75,0.35), clamp(length(q)*0.18,0.,0.18));
+  col=mix(col, vec3(1.0,0.85,0.55), clamp(r.x*0.12,0.,0.12));
 
-  // vignette — darken edges so content is readable
-  vec2 uv2=vUv-.5;
-  float vig=1.-dot(uv2,uv2)*2.5;
-  vig=clamp(vig,0.,1.);
-  col*=vig;
+  // very subtle — keep nearly white
+  col=clamp(col,0.,1.);
 
-  // keep it subtle — max brightness ~35%
-  col=clamp(col*0.35,0.,1.);
-
-  fragColor=vec4(col,.75);
+  fragColor=vec4(col,0.55);
 }`
 
 export default function Aurora({ className = '' }: AuroraProps) {
