@@ -94,6 +94,53 @@ h1, h2, h3 {
   perspective: 1000px;
 }
 
+/* orbit pulse ring sizes */
+.orbit-pulse-ring { width: 308px; height: 308px; }
+
+/* iPhone mockup */
+.iphone-wrapper { width: 210px; }
+.iphone-frame {
+  background: linear-gradient(145deg, #3a3a3c, #1c1c1e);
+  padding: 3px;
+  aspect-ratio: 9/19.5;
+}
+.iphone-btn-power {
+  right: -3px; top: 88px;
+  width: 3px; height: 64px;
+  background: linear-gradient(180deg, #4a4a4c, #2c2c2e);
+  border-radius: 0 2px 2px 0;
+}
+.iphone-btn-vol-silent {
+  left: -3px; top: 68px;
+  width: 3px; height: 26px;
+  background: linear-gradient(180deg, #4a4a4c, #2c2c2e);
+  border-radius: 2px 0 0 2px;
+}
+.iphone-btn-vol-up {
+  left: -3px; top: 102px;
+  width: 3px; height: 52px;
+  background: linear-gradient(180deg, #4a4a4c, #2c2c2e);
+  border-radius: 2px 0 0 2px;
+}
+.iphone-btn-vol-down {
+  left: -3px; top: 162px;
+  width: 3px; height: 52px;
+  background: linear-gradient(180deg, #4a4a4c, #2c2c2e);
+  border-radius: 2px 0 0 2px;
+}
+.iphone-dynamic-island {
+  width: 38%; height: 26px;
+  top: 8px;
+  left: 50%; transform: translateX(-50%);
+}
+.iphone-glow {
+  inset: -24px;
+  background: radial-gradient(circle, #ff7a1a 0%, transparent 70%);
+}
+
+/* hero orbit area */
+.hero-orbit-area { width: 360px; height: 500px; }
+
 /* hero rising bubble — left set via --bubble-left CSS var */
 .hero-bubble-rising {
   left: var(--bubble-left);

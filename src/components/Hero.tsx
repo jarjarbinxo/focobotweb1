@@ -1,147 +1,185 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'motion/react'
 import { Play, UtensilsCrossed, Coffee, Dumbbell, Stethoscope, ShoppingBag, Scissors } from 'lucide-react'
-import { copy, floatingReviews } from '../data/copy'
+import { copy } from '../data/copy'
 import type { Lang } from '../data/copy'
 import Aurora from './Aurora'
 
 interface HeroProps { lang: Lang }
 
-// Seeded positions — no Math.random(), deterministic across renders
-const BUBBLE_CONFIG = Array.from({ length: 12 }, (_, i) => ({
-  left: 3 + ((i * 8.3 + i * i * 0.7) % 94),           // 3% – 97%
-  duration: 14 + (i * 0.67 + (i % 3) * 1.2) % 8,      // 14–22s
-  delay: -(i * 1.85 + (i % 4) * 0.6),                  // negative = already in progress
-  sizeClass: (['text-[10px]', 'text-xs', 'text-[11px]'] as const)[i % 3],
-  reviewIndex: i,
-}))
+// ── Orbit nodes ───────────────────────────────────────────────────────────────
+const ORBIT_NODES = [
+  { Icon: UtensilsCrossed, label: 'Restaurant', color: 'text-orange-500 bg-orange-50' },
+  { Icon: Coffee,          label: 'Café',       color: 'text-amber-600 bg-amber-50' },
+  { Icon: Dumbbell,        label: 'Gym',        color: 'text-blue-500 bg-blue-50' },
+  { Icon: Stethoscope,     label: 'Clinic',     color: 'text-green-600 bg-green-50' },
+  { Icon: ShoppingBag,     label: 'Boutique',   color: 'text-pink-500 bg-pink-50' },
+  { Icon: Scissors,        label: 'Salon',      color: 'text-purple-500 bg-purple-50' },
+]
 
-// ── BubbleReview ─────────────────────────────────────────────────────────────
-interface BubbleReviewProps {
-  item: (typeof floatingReviews)[number]
-  delay: number
-  left: number
-  duration: number
-  sizeClass: string
-}
+// ── OrbitRing — pure RAF, no framer-motion rotation (zero desync) ─────────────
+function OrbitRing() {
+  const nodeRefs = useRef<(HTMLDivElement | null)[]>([])
+  const rafRef = useRef<number>(0)
 
-function BubbleReview({ item, delay, left, duration, sizeClass }: BubbleReviewProps) {
+  useEffect(() => {
+    const R = 148          // orbit radius px
+    const N = ORBIT_NODES.length
+    const PERIOD = 22      // seconds per full orbit
+    let startTs: number | null = null
+
+    const tick = (ts: number) => {
+      if (startTs === null) startTs = ts
+      const elapsed = (ts - startTs) / 1000
+      const baseAngle = (elapsed / PERIOD) * 2 * Math.PI
+
+      nodeRefs.current.forEach((el, i) => {
+        if (!el) return
+        // evenly space + rotate continuously; start from top (−π/2)
+        const angle = baseAngle + (i / N) * 2 * Math.PI - Math.PI / 2
+        const x = R * Math.cos(angle)
+        const y = R * Math.sin(angle)
+        el.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`
+      })
+
+      rafRef.current = requestAnimationFrame(tick)
+    }
+
+    rafRef.current = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(rafRef.current)
+  }, [])
+
   return (
-    <motion.div
-      className="absolute hero-bubble-rising pointer-events-none"
-      style={{ '--bubble-left': `${left}%` } as React.CSSProperties}
-      animate={{ y: [0, '-100vh'] }}
-      transition={{
-        duration,
-        repeat: Infinity,
-        ease: 'linear',
-        delay,
-      }}
-    >
+    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+      {/* Dashed orbit ring */}
+      <svg className="absolute w-[300px] h-[300px]" viewBox="0 0 300 300" overflow="visible">
+        <circle
+          cx="150" cy="150" r="148"
+          fill="none"
+          stroke="rgba(255,122,26,0.13)"
+          strokeWidth="1.5"
+          strokeDasharray="5 9"
+        />
+        {/* Animated bright arc */}
+        <motion.circle
+          cx="150" cy="150" r="148"
+          fill="none"
+          stroke="url(#heroArcGrad)"
+          strokeWidth="2.5"
+          strokeDasharray="90 840"
+          strokeLinecap="round"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 22, repeat: Infinity, ease: 'linear' }}
+          style={{ transformOrigin: '150px 150px' }}
+        />
+        <defs>
+          <linearGradient id="heroArcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stopColor="#ff7a1a" stopOpacity="0" />
+            <stop offset="50%"  stopColor="#ff7a1a" stopOpacity="0.9" />
+            <stop offset="100%" stopColor="#ff7a1a" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+      </svg>
+
+      {/* Pulse rings */}
       <motion.div
-        animate={{ opacity: [0, 1, 1, 1, 0] }}
-        transition={{
-          duration,
-          repeat: Infinity,
-          ease: 'linear',
-          delay,
-          times: [0, 0.15, 0.50, 0.85, 1],
-        }}
-        className={`bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-md flex items-center gap-2 whitespace-nowrap ${sizeClass}`}
-      >
-        <span className="text-[#ff7a1a] leading-none">
-          {'★'.repeat(item.stars)}
-        </span>
-        <span className="font-medium text-gray-800 max-w-[80px] truncate">{item.name}</span>
-        <span className="text-gray-400 max-w-[72px] truncate">{item.company}</span>
-      </motion.div>
-    </motion.div>
+        className="absolute orbit-pulse-ring rounded-full border border-[#ff7a1a]/10"
+        animate={{ scale: [1, 1.07, 1], opacity: [0.5, 0.1, 0.5] }}
+        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+      />
+
+      {/* Orbit nodes — centered, offset by RAF */}
+      {ORBIT_NODES.map(({ Icon, label, color }, i) => (
+        <div
+          key={i}
+          ref={el => { nodeRefs.current[i] = el }}
+          className="absolute"
+          style={{ top: '50%', left: '50%' }}
+        >
+          <div className="flex flex-col items-center gap-1.5 select-none">
+            <div className={`w-10 h-10 rounded-2xl ${color} flex items-center justify-center shadow-md border border-white`}>
+              <Icon className="w-5 h-5" />
+            </div>
+            <span className="text-[9px] font-semibold text-gray-500 bg-white/95 rounded-full px-2 py-0.5 whitespace-nowrap shadow-sm border border-gray-100">
+              {label}
+            </span>
+          </div>
+        </div>
+      ))}
+    </div>
   )
 }
 
-// ── OrbitRing — animated SVG rings + business nodes ─────────────────────────
-const ORBIT_NODES = [
-  { Icon: UtensilsCrossed, label: 'Restaurant', angle: 0,   r: 140, speed: 22 },
-  { Icon: Coffee,          label: 'Café',       angle: 60,  r: 140, speed: 22 },
-  { Icon: Dumbbell,        label: 'Gym',        angle: 120, r: 140, speed: 22 },
-  { Icon: Stethoscope,     label: 'Clinic',     angle: 180, r: 140, speed: 22 },
-  { Icon: ShoppingBag,     label: 'Boutique',   angle: 240, r: 140, speed: 22 },
-  { Icon: Scissors,        label: 'Salon',      angle: 300, r: 140, speed: 22 },
-]
+// ── iPhone mockup ─────────────────────────────────────────────────────────────
+interface IPhoneProps {
+  messages: { from: string; text: string }[]
+  visibleCount: number
+  lang: Lang
+}
 
-function OrbitRing() {
+function IPhone({ messages, visibleCount, lang }: IPhoneProps) {
   return (
-    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-      {/* Rotating container — spins the whole ring */}
-      <motion.div
-        className="relative w-[280px] h-[280px]"
-        animate={{ rotate: 360 }}
-        transition={{ duration: 22, repeat: Infinity, ease: 'linear' }}
-      >
-        {/* SVG ring */}
-        <svg className="absolute inset-0 w-full h-full" viewBox="0 0 280 280">
-          <circle
-            cx="140" cy="140" r="132"
-            fill="none"
-            stroke="rgba(255,122,26,0.12)"
-            strokeWidth="1"
-            strokeDasharray="6 8"
-          />
-          {/* Animated arc highlight */}
-          <motion.circle
-            cx="140" cy="140" r="132"
-            fill="none"
-            stroke="url(#arcGrad)"
-            strokeWidth="2"
-            strokeDasharray="80 744"
-            strokeLinecap="round"
-          />
-          <defs>
-            <linearGradient id="arcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#ff7a1a" stopOpacity="0" />
-              <stop offset="50%" stopColor="#ff7a1a" stopOpacity="0.8" />
-              <stop offset="100%" stopColor="#ff7a1a" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-        </svg>
+    <div className="relative iphone-wrapper">
+      {/* Outer titanium frame */}
+      <div className="relative rounded-[3rem] shadow-2xl iphone-frame">
+        {/* Power button */}
+        <div className="absolute iphone-btn-power" />
+        {/* Volume buttons */}
+        <div className="absolute iphone-btn-vol-silent" />
+        <div className="absolute iphone-btn-vol-up" />
+        <div className="absolute iphone-btn-vol-down" />
 
-        {/* Nodes — counter-rotate so icons stay upright */}
-        {ORBIT_NODES.map(({ Icon, label, angle }, i) => {
-          const rad = (angle * Math.PI) / 180
-          const x = 140 + 132 * Math.cos(rad)
-          const y = 140 + 132 * Math.sin(rad)
-          return (
-            <motion.div
-              key={i}
-              className="absolute -translate-x-1/2 -translate-y-1/2"
-              style={{ left: x, top: y }}
-              animate={{ rotate: -360 }}
-              transition={{ duration: 22, repeat: Infinity, ease: 'linear' }}
-            >
-              <div className="flex flex-col items-center gap-1">
-                <div className="w-10 h-10 rounded-2xl bg-white shadow-lg border border-gray-100 flex items-center justify-center text-[#ff7a1a]">
-                  <Icon className="w-5 h-5" />
-                </div>
-                <span className="text-[9px] font-semibold text-gray-500 whitespace-nowrap bg-white/80 px-1.5 py-0.5 rounded-full">
-                  {label}
-                </span>
+        {/* Screen glass */}
+        <div className="w-full h-full rounded-[2.8rem] overflow-hidden bg-black relative flex flex-col">
+          {/* Status bar spacer + Dynamic Island */}
+          <div className="relative flex-shrink-0 h-10 bg-[#075e54]">
+            <div className="absolute bg-black rounded-full z-30 iphone-dynamic-island" />
+          </div>
+
+          {/* WhatsApp UI */}
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {/* Header */}
+            <div className="bg-[#075e54] px-3 py-2.5 flex items-center gap-2.5 border-b border-white/5">
+              <div className="w-8 h-8 rounded-full bg-[#ff7a1a]/20 flex items-center justify-center text-[#ff7a1a] font-bold text-sm flex-shrink-0">
+                F
               </div>
-            </motion.div>
-          )
-        })}
-      </motion.div>
+              <div>
+                <div className="text-white text-xs font-semibold">Focobot</div>
+                <div className="text-green-300 text-[10px]">online</div>
+              </div>
+            </div>
 
-      {/* Outer pulse ring */}
-      <motion.div
-        className="absolute w-[300px] h-[300px] rounded-full border border-[#ff7a1a]/10"
-        animate={{ scale: [1, 1.08, 1], opacity: [0.4, 0.1, 0.4] }}
-        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-      />
-      <motion.div
-        className="absolute w-[340px] h-[340px] rounded-full border border-[#ff7a1a]/06"
-        animate={{ scale: [1, 1.06, 1], opacity: [0.3, 0.08, 0.3] }}
-        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
-      />
+            {/* Chat */}
+            <div
+              className="flex-1 bg-[#0b1e19] px-2.5 py-3 flex flex-col gap-1.5 overflow-hidden"
+              dir={lang === 'ar' ? 'rtl' : 'ltr'}
+            >
+              {messages.slice(0, visibleCount).map((msg, i) => (
+                <motion.div
+                  key={`${lang}-${i}`}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.25 }}
+                  className={`flex ${msg.from === 'customer' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`text-white text-[11px] leading-relaxed px-3 py-1.5 max-w-[82%] ${
+                      msg.from === 'customer'
+                        ? 'bg-[#005c4b] rounded-2xl rounded-tr-sm'
+                        : 'bg-[#1f2c34] rounded-2xl rounded-tl-sm'
+                    }`}
+                  >
+                    {msg.text}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Glow behind phone */}
+      <div className="absolute -z-10 blur-3xl rounded-full opacity-25 iphone-glow" />
     </div>
   )
 }
@@ -165,9 +203,7 @@ export default function Hero({ lang }: HeroProps) {
         return prev + 1
       })
     }, 1200)
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current)
-    }
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
   }, [lang, allMessages.length])
 
   const headlineWords = t.headline.split(' ')
@@ -176,36 +212,20 @@ export default function Hero({ lang }: HeroProps) {
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden bg-white">
 
-      {/* LAYER 1 — Aurora shader */}
-      <div className="absolute inset-0 opacity-60">
+      {/* Aurora shader bg */}
+      <div className="absolute inset-0 opacity-60 pointer-events-none">
         <Aurora />
       </div>
-
-      {/* LAYER 2 — Rising bubble reviews */}
-      {BUBBLE_CONFIG.map((cfg, i) => (
-        <BubbleReview
-          key={i}
-          item={floatingReviews[cfg.reviewIndex % floatingReviews.length]}
-          left={cfg.left}
-          duration={cfg.duration}
-          delay={cfg.delay}
-          sizeClass={cfg.sizeClass}
-        />
-      ))}
 
       {/* Bottom fade */}
       <div className="absolute bottom-0 inset-x-0 h-32 bg-gradient-to-t from-white to-transparent pointer-events-none" />
 
-      {/* LAYER 3 — Main content */}
+      {/* Content */}
       <div className="relative z-10 max-w-6xl mx-auto px-6 py-32 w-full">
-        <div
-          className={`flex flex-col items-center gap-16 ${
-            lang === 'ar' ? 'lg:flex-row-reverse' : 'lg:flex-row'
-          }`}
-        >
+        <div className={`flex flex-col items-center gap-12 ${lang === 'ar' ? 'lg:flex-row-reverse' : 'lg:flex-row'}`}>
 
           {/* ── LEFT: Text ── */}
-          <div className="flex-1 text-center lg:text-start">
+          <div className="flex-1 min-w-0 text-center lg:text-start">
 
             {/* Eyebrow badge */}
             <motion.div
@@ -216,7 +236,6 @@ export default function Hero({ lang }: HeroProps) {
             >
               <span className="w-1.5 h-1.5 rounded-full bg-[#ff7a1a] animate-pulse flex-shrink-0" />
               {t.badge}
-              {/* Shimmer sweep */}
               <motion.div
                 className="absolute inset-0 pointer-events-none hero-badge-shimmer"
                 animate={{ x: ['-100%', '200%'] }}
@@ -224,12 +243,12 @@ export default function Hero({ lang }: HeroProps) {
               />
             </motion.div>
 
-            {/* Headline — word-by-word stagger */}
+            {/* Headline */}
             <h1 className="text-5xl md:text-7xl font-black leading-[1.05] text-gray-900">
               {headlineWords.map((word, i) => (
                 <motion.span
                   key={`h-${i}`}
-                  initial={{ opacity: 0, y: 30 }}
+                  initial={{ opacity: 0, y: 28 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.45, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
                   className="inline-block mr-[0.25em]"
@@ -239,18 +258,14 @@ export default function Hero({ lang }: HeroProps) {
               ))}
             </h1>
 
-            {/* Highlight line */}
+            {/* Gradient highlight */}
             <h1 className="hero-highlight text-5xl md:text-7xl font-black leading-[1.05] mb-4">
               {highlightWords.map((word, i) => (
                 <motion.span
                   key={`hi-${i}`}
-                  initial={{ opacity: 0, y: 30 }}
+                  initial={{ opacity: 0, y: 28 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{
-                    duration: 0.45,
-                    delay: (headlineWords.length + i) * 0.08,
-                    ease: [0.22, 1, 0.36, 1],
-                  }}
+                  transition={{ duration: 0.45, delay: (headlineWords.length + i) * 0.08, ease: [0.22, 1, 0.36, 1] }}
                   className="inline-block mr-[0.25em]"
                 >
                   {word}
@@ -258,7 +273,7 @@ export default function Hero({ lang }: HeroProps) {
               ))}
             </h1>
 
-            {/* Sub text */}
+            {/* Sub */}
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -268,7 +283,7 @@ export default function Hero({ lang }: HeroProps) {
               {t.sub}
             </motion.p>
 
-            {/* CTA row */}
+            {/* CTAs */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
@@ -277,104 +292,59 @@ export default function Hero({ lang }: HeroProps) {
             >
               <a
                 href="#free-week"
-                className="hero-cta-primary bg-[#ff7a1a] text-white font-bold px-8 py-4 rounded-xl text-base hover:bg-[#ff7a1a]/90 transition-all hover:scale-105 inline-flex items-center gap-2"
+                className="hero-cta-primary bg-[#ff7a1a] text-white font-bold px-8 py-4 rounded-xl text-base hover:bg-[#ff7a1a]/90 transition-all hover:scale-105 inline-flex items-center gap-2 cursor-pointer"
               >
                 {t.cta1}
               </a>
               <a
                 href="#how-it-works"
-                className="text-gray-500 hover:text-gray-900 text-base font-medium flex items-center gap-2 transition-colors px-2 py-4"
+                className="text-gray-500 hover:text-gray-900 text-base font-medium flex items-center gap-2 transition-colors px-2 py-4 cursor-pointer"
               >
                 {t.cta2}
                 <Play size={16} className="fill-current" />
               </a>
             </motion.div>
 
-            {/* Trust row */}
+            {/* Trust */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.9 }}
               className="flex items-center gap-3 justify-center lg:justify-start"
             >
-              {/* Mini avatars */}
               <div className="flex -space-x-2">
-                {['A', 'K', 'S'].map((initial, i) => (
-                  <div
-                    key={i}
-                    className="w-8 h-8 rounded-full bg-[#ff7a1a]/20 border-2 border-white flex items-center justify-center text-[#ff7a1a] font-bold text-xs"
-                  >
-                    {initial}
+                {['A', 'K', 'S'].map((init, i) => (
+                  <div key={i} className="w-8 h-8 rounded-full bg-[#ff7a1a]/15 border-2 border-white flex items-center justify-center text-[#ff7a1a] font-bold text-xs">
+                    {init}
                   </div>
                 ))}
               </div>
               <span className="text-sm text-gray-500 font-medium">
-                500+ businesses trust Focobot
+                {lang === 'ar' ? '+٥٠٠ شركة تثق بفوكوبوت' : '500+ businesses trust Focobot'}
               </span>
             </motion.div>
           </div>
 
-          {/* ── RIGHT: Phone + orbit shader ── */}
+          {/* ── RIGHT: iPhone + Orbit ── */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.3 }}
-            className="relative w-full max-w-[380px] mx-auto flex-shrink-0 flex items-center justify-center"
-            style={{ minHeight: 480 }}
+            className="relative flex-shrink-0 flex items-center justify-center hero-orbit-area"
           >
-            {/* Orbit ring behind phone */}
+            {/* Orbit ring — behind phone */}
             <OrbitRing />
 
-            {/* Phone shell — centered on top of orbit */}
-            <motion.div
-              className="relative z-10 hero-phone-shell hero-phone-3d bg-white rounded-[2.5rem] p-3 border border-gray-100"
-              style={{ width: 220 }}
-              whileHover={{ rotateY: 5, rotateX: -3, scale: 1.02 }}
-              transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-            >
-              {/* WhatsApp UI */}
-              <div className="bg-[#075e54] rounded-[2rem] overflow-hidden">
-                {/* Header */}
-                <div className="flex items-center gap-3 px-4 py-3 border-b border-white/10">
-                  <div className="w-9 h-9 rounded-full bg-[#ff7a1a]/20 flex items-center justify-center text-[#ff7a1a] font-bold text-sm flex-shrink-0">
-                    F
-                  </div>
-                  <div>
-                    <div className="text-white text-sm font-semibold">Focobot</div>
-                    <div className="text-green-300 text-xs">online</div>
-                  </div>
-                </div>
-
-                {/* Chat messages */}
-                <div className="bg-[#0b1e19] px-3 py-4 min-h-[320px] flex flex-col gap-2 overflow-hidden">
-                  {allMessages.slice(0, visibleCount).map((msg, i) => (
-                    <motion.div
-                      key={`${lang}-${i}`}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className={`flex ${msg.from === 'customer' ? 'justify-end' : 'justify-start'}`}
-                    >
-                      <div
-                        className={`text-white text-xs px-3 py-2 max-w-[85%] ${
-                          msg.from === 'customer'
-                            ? 'bg-[#005c4b] rounded-2xl rounded-tr-sm'
-                            : 'bg-[#1f2c34] rounded-2xl rounded-tl-sm'
-                        }`}
-                      >
-                        {msg.text}
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Central orange glow */}
-            <div className="absolute inset-0 flex items-center justify-center -z-10 pointer-events-none">
-              <div className="w-48 h-48 rounded-full bg-[#ff7a1a]/15 blur-3xl" />
+            {/* iPhone — on top */}
+            <div className="relative z-10">
+              <IPhone
+                messages={allMessages}
+                visibleCount={visibleCount}
+                lang={lang}
+              />
             </div>
           </motion.div>
+
         </div>
       </div>
 
@@ -384,16 +354,7 @@ export default function Hero({ lang }: HeroProps) {
         animate={{ y: [0, 6, 0] }}
         transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
       >
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="6 9 12 15 18 9" />
         </svg>
       </motion.div>
